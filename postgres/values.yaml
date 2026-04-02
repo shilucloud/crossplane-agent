@@ -1,0 +1,4 @@
+auth:
+  username: agentregistry
+  password: mypassword
+  database: agent-registry

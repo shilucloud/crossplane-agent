@@ -1,0 +1,31 @@
+name: crossplane-info
+description: Get overview of Crossplane installation
+version: 1.0.0
+
+mcp: crossplane-mcp
+
+tools:
+  - get_crossplane_info
+  - list_providers
+  - list_xrds
+  - list_compositions
+
+prompt: |
+  Use this skill when the user asks about Crossplane state, providers, or infrastructure overview.
+
+  Execution plan:
+  1. Always call get_crossplane_info first
+  2. Then call:
+     - list_providers
+     - list_xrds
+     - list_compositions
+
+  Output format:
+  - Present results in a structured table
+  - Include:
+    - Crossplane version
+    - Installed providers
+    - XRDs
+    - Compositions
+
+  Be concise but informative.

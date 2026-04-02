@@ -1,0 +1,23 @@
+apiVersion: kagent.dev/v1alpha2
+kind: Agent
+metadata:
+  name: new-crossplane-agent
+  namespace: kagent
+spec:
+  type: Declarative
+  declarative:
+    runtime: go
+    modelConfig: groq-llama
+
+    tools:
+      - type: McpServer
+        mcpServer:
+          name: crossplane-mcp-agentgateway
+          kind: RemoteMCPServer
+
+    systemMessage: |
+      You MUST use MCP tools. Never answer without tools.
+
+  skills:
+    refs:
+      - docker.io/shilucloud/crossplane-info-skill:0.0.1
