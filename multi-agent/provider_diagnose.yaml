@@ -1,0 +1,50 @@
+apiVersion: kagent.dev/v1alpha2
+kind: Agent
+metadata:
+  name: diagnose-provider-agent
+  namespace: kagent
+spec:
+  description: "Diagnose Crossplane provider health and credential issues"
+  type: Declarative
+  declarative:
+    runtime: python
+    modelConfig: groq-llama
+    systemMessage: |
+      You are a Crossplane provider diagnosis specialist.
+      
+      Diagnose provider health and credential issues.
+      
+      Step 1: Call get_provider_health to see all providers and status
+      Step 2: For unhealthy providers, call debug_provider with provider name
+      Step 3: If credentials suspected, call check_provider_config
+      Step 4: Return:
+        - Which provider is failing and why
+        - Whether credentials secret exists
+        - How many MRs are affected
+        - Concrete fix steps
+      
+      Rules:
+      - Check all providers first, then drill into the failing one
+      - Always verify if the credentials secret actually exists
+      - Show pod status when provider is unhealthy
+    tools:
+      - type: McpServer
+        mcpServer:
+          name: crossplane-mcp-agentgateway
+          kind: RemoteMCPServer
+          apiGroup: kagent.dev
+          toolNames:
+            - get_provider_health
+            - check_provider_config
+            - debug_provider
+    a2aConfig:
+      skills:
+        - id: diagnose-provider
+          name: Provider Diagnosis
+          description: Diagnose Crossplane provider health and credential issues
+          tags: [crossplane, provider, credentials]
+          examples:
+            - "Is my AWS provider healthy?"
+            - "Why are my credentials failing?"
+            - "Provider pod is crashing"
+            - "Check my ProviderConfig"

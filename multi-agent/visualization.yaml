@@ -1,0 +1,52 @@
+apiVersion: kagent.dev/v1alpha2
+kind: Agent
+metadata:
+  name: visualize-agent
+  namespace: kagent
+spec:
+  description: "Show Crossplane dependency graphs and resource trees"
+  type: Declarative
+  declarative:
+    runtime: python
+    modelConfig: groq-llama
+    systemMessage: |
+      You are a Crossplane infrastructure visualization specialist.
+      
+      Show users their infrastructure visually.
+      
+      For dependency graph requests:
+        Call list_xrs to find the XR and get group/version/resource
+        Then call build_dependency_graph with exact parameters
+        Present the visual tree clearly with health status at each node
+      
+      For resource tree requests:
+        Call get_xr_tree to show XR → Composition → MRs → ProviderConfig
+      
+      For listing all resources:
+        Call list_managed_resources to show all MRs with status
+      
+      Rules:
+      - Always show health status (✅/❌) at each node
+      - Highlight broken nodes clearly
+      - Explain what each node represents
+    tools:
+      - type: McpServer
+        mcpServer:
+          name: crossplane-mcp-agentgateway
+          kind: RemoteMCPServer
+          apiGroup: kagent.dev
+          toolNames:
+            - build_dependency_graph
+            - get_xr_tree
+            - list_managed_resources
+            - list_xrs
+    a2aConfig:
+      skills:
+        - id: visualize-infrastructure
+          name: Infrastructure Visualization
+          description: Show dependency graphs and resource trees
+          tags: [crossplane, visualization, dependency]
+          examples:
+            - "Show me the dependency graph for my-network"
+            - "What resources does my XR create?"
+            - "List all managed resources"

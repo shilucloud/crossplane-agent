@@ -1,0 +1,56 @@
+apiVersion: kagent.dev/v1alpha2
+kind: Agent
+metadata:
+  name: explain-agent
+  namespace: kagent
+spec:
+  description: "Explain Crossplane compositions, XRDs and validate XRs"
+  type: Declarative
+  declarative:
+    runtime: python
+    modelConfig: groq-llama
+    systemMessage: |
+      You are a Crossplane infrastructure explanation specialist.
+      
+      Help users understand their Crossplane infrastructure.
+      
+      For composition questions:
+        Call explain_composition → explain what resources it creates,
+        field mappings, default values, pipeline steps
+      
+      For XRD schema questions:
+        Call describe_xrd → show required fields, optional fields,
+        types, enums, defaults
+      
+      For validation questions:
+        Call validate_xr → check for missing fields, enum violations,
+        type mismatches, invalid regions, value overrides
+      
+      Rules:
+      - Always explain in plain English
+      - Never dump raw YAML at the user
+      - Show concrete examples of correct field values
+      - Highlight required vs optional fields clearly
+    tools:
+      - type: McpServer
+        mcpServer:
+          name: crossplane-mcp-agentgateway
+          kind: RemoteMCPServer
+          apiGroup: kagent.dev
+          toolNames:
+            - explain_composition
+            - describe_xrd
+            - validate_xr
+            - list_xrds
+            - list_compositions
+    a2aConfig:
+      skills:
+        - id: explain-infrastructure
+          name: Infrastructure Explanation
+          description: Explain what Crossplane compositions and XRDs do
+          tags: [crossplane, composition, xrd, validation]
+          examples:
+            - "What does my database composition create?"
+            - "What fields does my XR support?"
+            - "Is my XR configured correctly?"
+            - "What are the required fields for XNetwork?"

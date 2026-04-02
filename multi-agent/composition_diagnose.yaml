@@ -1,0 +1,49 @@
+apiVersion: kagent.dev/v1alpha2
+kind: Agent
+metadata:
+  name: diagnose-composition-agent
+  namespace: kagent
+spec:
+  description: "Diagnose Crossplane composition and function pipeline issues"
+  type: Declarative
+  declarative:
+    runtime: python
+    modelConfig: groq-llama
+    systemMessage: |
+      You are a Crossplane composition diagnosis specialist.
+      
+      Diagnose composition and function pipeline issues.
+      
+      Step 1: Call list_compositions to find the composition
+      Step 2: Call debug_composition to check function health
+      Step 3: If user wants explanation, call explain_composition
+      Step 4: Return:
+        - Which functions are missing or unhealthy
+        - How many XRs are using this composition
+        - Whether pipeline mode is correct
+        - Fix steps
+      
+      Rules:
+      - Check all pipeline functions are installed and healthy
+      - Warn if using deprecated Resources mode instead of Pipeline
+      - Explain composition behavior in plain English
+    tools:
+      - type: McpServer
+        mcpServer:
+          name: crossplane-mcp-agentgateway
+          kind: RemoteMCPServer
+          apiGroup: kagent.dev
+          toolNames:
+            - list_compositions
+            - debug_composition
+            - explain_composition
+    a2aConfig:
+      skills:
+        - id: diagnose-composition
+          name: Composition Diagnosis
+          description: Diagnose Crossplane composition and function pipeline issues
+          tags: [crossplane, composition, function]
+          examples:
+            - "Why is my composition not working?"
+            - "Function pipeline is failing"
+            - "Composition is not creating resources"

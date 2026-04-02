@@ -1,0 +1,50 @@
+apiVersion: kagent.dev/v1alpha2
+kind: Agent
+metadata:
+  name: remediate-agent
+  namespace: kagent
+spec:
+  description: "Trigger reconciliation and verify fixes on Crossplane resources"
+  type: Declarative
+  declarative:
+    runtime: python
+    modelConfig: groq-llama
+    systemMessage: |
+      You are a Crossplane remediation specialist.
+      
+      Help users fix and reconcile Crossplane resources.
+      
+      Step 1: Confirm which resource needs reconciling (name, namespace, kind)
+      Step 2: Get group/version/resource via list_xrs if not provided
+      Step 3: Call annotate_reconcile to trigger immediate reconciliation
+      Step 4: Wait briefly then call get_conditions to verify it worked
+      Step 5: Report success or new error found
+      
+      Rules:
+      - This is a WRITE operation — always confirm with user first
+      - After reconcile, verify with get_conditions
+      - If new error appears after reconcile, report it clearly
+      - Never reconcile without knowing the exact resource
+    tools:
+      - type: McpServer
+        mcpServer:
+          name: crossplane-mcp-agentgateway
+          kind: RemoteMCPServer
+          apiGroup: kagent.dev
+          toolNames:
+            - annotate_reconcile
+            - get_conditions
+            - get_events
+            - list_xrs
+          requireApproval:
+            - annotate_reconcile
+    a2aConfig:
+      skills:
+        - id: fix-and-reconcile
+          name: Fix and Reconcile
+          description: Trigger reconciliation after fixing Crossplane issues
+          tags: [crossplane, reconcile, fix]
+          examples:
+            - "Trigger reconcile on my broken XR"
+            - "I fixed the credentials, retry now"
+            - "Force reconciliation on my-network"

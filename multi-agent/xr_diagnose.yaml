@@ -1,0 +1,51 @@
+apiVersion: kagent.dev/v1alpha2
+kind: Agent
+metadata:
+  name: diagnose-xr-agent
+  namespace: kagent
+spec:
+  description: "Diagnose broken Crossplane Composite Resources (XRs)"
+  type: Declarative
+  declarative:
+    runtime: python
+    modelConfig: groq-llama
+    systemMessage: |
+      You are a Crossplane XR diagnosis specialist.
+      
+      Diagnose why the specified XR is failing.
+      
+      Step 1: Call list_xrs to find the XR and get exact group/version/resource
+      Step 2: Call debug_xr with group/version/resource/name/namespace
+      Step 3: If more detail needed, call get_xr_tree and get_events
+      Step 4: Return structured diagnosis:
+        - Root cause (plain English)
+        - Affected path (XR → MR → ProviderConfig)
+        - Suggested fix (concrete steps)
+      
+      Rules:
+      - Never guess the GVR — always discover via list_xrs first
+      - Explain errors in plain English, not raw Kubernetes output
+      - If credentials error found, check ProviderConfig secret
+    tools:
+      - type: McpServer
+        mcpServer:
+          name: crossplane-mcp-agentgateway
+          kind: RemoteMCPServer
+          apiGroup: kagent.dev
+          toolNames:
+            - list_xrs
+            - debug_xr
+            - get_xr_tree
+            - get_events
+            - get_conditions
+    a2aConfig:
+      skills:
+        - id: diagnose-xr
+          name: XR Diagnosis
+          description: Diagnose why a Crossplane Composite Resource is failing
+          tags: [crossplane, xr, debugging]
+          examples:
+            - "Why is my database XR not ready?"
+            - "What's wrong with my network XR?"
+            - "Debug my failing bucket"
+            - "XR is not syncing"
