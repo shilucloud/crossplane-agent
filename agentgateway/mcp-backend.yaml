@@ -8,7 +8,7 @@ spec:
     targets:
       - name: crossplane-mcp
         static:
-          host: crossplane-agent.default.svc.cluster.local
+          host: crossplane-mcp-server.mcp-servers.svc.cluster.local
           port: 8080
           protocol: StreamableHTTP
  
