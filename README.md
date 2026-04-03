@@ -20,6 +20,43 @@ Deploy AI agents on Kubernetes — backed by Helm, powered by MCP, routed throug
 
 ## Installation
 
+
+### 0. Install ArgoCD (Required)
+
+Create namespace:
+
+```bash
+kubectl create namespace argocd
+```
+
+Install ArgoCD:
+
+```bash
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+```
+
+Access UI:
+
+```bash
+kubectl port-forward svc/argocd-server -n argocd 8080:443
+```
+
+Get admin password:
+
+```bash
+kubectl -n argocd get secret argocd-initial-admin-secret \
+  -o jsonpath="{.data.password}" | base64 -d && echo
+```
+
+Login:
+
+* URL: https://localhost:8080
+* Username: `admin`
+* Password: (from above command)
+
+---
+
+
 ### 1. Install kagent CRDs
 
 CRDs must be installed before the controller.
@@ -128,4 +165,90 @@ agentgateway/
 
 ## Multi-agent
 
-Multi-agent manifests are present under `multi-agent/` but are **not tested**. Contributions welcome.
+Multi-agent manifests are present under `multi-agent/` but are **not tested**. 
+
+
+---
+
+## Getting Started (TL;DR)
+
+Once ArgoCD is installed:
+
+```bash
+kubectl apply -f argocd/apps/apps-of-apps.yaml
+```
+
+### That’s it.
+
+This will automatically:
+
+* Install Crossplane
+* Install AWS providers (S3, EC2)
+* Deploy compositions (S3, VPC)
+* Deploy MCP server
+* Deploy kagent
+* Configure AgentGateway routing
+
+---
+
+## How It Works (High-Level)
+
+```
+User / Agent
+     ↓
+kagent (LLM reasoning)
+     ↓
+MCP Server (tools)
+     ↓
+Crossplane
+     ↓
+AWS Resources (S3, EC2, VPC)
+```
+
+
+If you want, you can use the predefined compositions, xrds, xrs 
+```bash
+kubectl apply -f crossplane-resources
+```
+
+---
+## Example Use Case
+
+
+Ask your agent:
+
+> "Create an S3 bucket for ML training data in ap-south-1"
+
+Agent will:
+
+1. Generate XR (S3Bucket)
+2. Crossplane provisions AWS resource
+3. Status returned via MCP
+
+If you need predefined test scenarios
+```bash
+kubectl apply -f test_scenarios
+```
+
+---
+
+## Future Improvements
+
+* Multi-cloud compositions (AWS + GCP + Azure)
+* Crossplane Functions for policy enforcement
+* Cost-aware provisioning
+* Secure defaults (encryption, IAM)
+* Production-ready multi-agent workflows
+
+---
+
+## Contributing
+
+PRs welcome — especially for:
+
+* Multi-agent testing
+* New MCP tools
+* Crossplane compositions
+* Observability integrations
+
+---
