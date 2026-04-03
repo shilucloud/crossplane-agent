@@ -2,7 +2,7 @@ apiVersion: agentgateway.dev/v1alpha1
 kind: AgentgatewayBackend
 metadata:
   name: crossplane-mcp-backend
-  namespace: agentgateway
+  namespace: agentgateway-system
 spec:
   mcp:
     targets:

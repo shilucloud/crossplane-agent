@@ -2,14 +2,14 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: crossplane-mcp
-  namespace: agentgateway
+  namespace: agentgateway-system
 spec:
   parentRefs:
     - name: agentgateway-proxy
-      namespace: agentgateway
+      namespace: agentgateway-system
   rules:
     - backendRefs:
         - name: crossplane-mcp-backend
-          namespace: agentgateway
+          namespace: agentgateway-system
           group: agentgateway.dev
           kind: AgentgatewayBackend
