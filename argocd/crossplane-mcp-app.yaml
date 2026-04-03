@@ -10,7 +10,16 @@ spec:
   source:
     repoURL: https://shilucloud.github.io/crossplane-mcp-server/
     chart: crossplane-mcp-server
-    targetRevision: 0.1.1
+    targetRevision: 0.1.3
+    helm:
+      values: |
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
   destination:
     server: https://kubernetes.default.svc
     namespace: mcp-servers
