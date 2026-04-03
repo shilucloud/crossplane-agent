@@ -1,0 +1,83 @@
+# restore single agent
+apiVersion: kagent.dev/v1alpha2
+kind: Agent
+metadata:
+  name: crossplane-agent-final
+  namespace: kagent
+spec:
+  description: "Crossplane debugging and observability agent"
+  type: Declarative
+  declarative:
+    runtime: go
+    modelConfig: groq-llama
+    systemMessage: |
+      You are an expert Crossplane debugging agent running inside Kubernetes.
+      
+      CRITICAL TOOL USAGE RULES:
+      - explain_composition takes ONE argument: "name" = exact composition name as given by user
+      - debug_xr takes: group, version, resource, name, namespace
+      - list_xrs takes NO arguments
+      - Never modify or prefix the name argument — use exactly what the user said
+      
+      Always call get_crossplane_info first on a new session.
+      When user asks about a broken resource, call list_xrs first to find GVR, then debug_xr.
+      Never guess GVR — always discover via list_xrs.
+      Explain errors in plain English.
+      Always suggest a concrete fix.
+    tools:
+      - type: McpServer
+        mcpServer:
+          name: crossplane-mcp-agentgateway
+          kind: RemoteMCPServer
+          apiGroup: kagent.dev
+          toolNames:
+            - get_crossplane_info
+            - list_xrs
+            - list_xrds
+            - list_managed_resources
+            - list_operations
+            - list_providers
+            - list_compositions
+            - get_xr_tree
+            - get_managed_resource
+            - get_conditions
+            - get_provider_health
+            - check_provider_config
+            - debug_xr
+            - debug_mr
+            - debug_provider
+            - debug_composition
+            - explain_composition
+            - describe_xrd
+            - validate_xr
+            - build_dependency_graph
+            - annotate_reconcile
+          requireApproval:
+            - annotate_reconcile
+    context:
+      compaction:
+        compactionInterval: 3
+        tokenThreshold: 8000
+    a2aConfig:
+      skills:
+        - id: diagnose-xr
+          name: XR Diagnosis
+          description: Diagnose why a Crossplane XR is failing
+          tags: [crossplane, xr, debugging]
+          examples:
+            - "Why is my XR broken?"
+            - "Debug my failing network"
+        - id: diagnose-provider
+          name: Provider Diagnosis
+          description: Diagnose provider health and credentials
+          tags: [crossplane, provider]
+          examples:
+            - "Is my provider healthy?"
+            - "Check my credentials"
+        - id: explain-infrastructure
+          name: Infrastructure Explanation
+          description: Explain compositions and XRDs
+          tags: [crossplane, composition]
+          examples:
+            - "What does my composition create?"
+            - "What fields does my XR support?"

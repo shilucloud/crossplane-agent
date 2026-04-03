@@ -1,0 +1,9 @@
+apiVersion: kagent.dev/v1alpha2
+kind: RemoteMCPServer
+metadata:
+  name: crossplane-mcp-server
+  namespace: kagent
+spec:
+  description: "Crossplane debugging and observability tools"
+  protocol: STREAMABLE_HTTP
+  url: http://crossplane-mcp-server.mcp-servers.svc.cluster.local:8080/mcp
