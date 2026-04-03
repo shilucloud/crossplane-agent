@@ -1,4 +1,4 @@
-# kagent
+# Crossplane Agent
 
 Deploy AI agents on Kubernetes — backed by Helm, powered by MCP, routed through AgentGateway.
 
