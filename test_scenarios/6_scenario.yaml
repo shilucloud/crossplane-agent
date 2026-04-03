@@ -1,0 +1,64 @@
+# ProviderConfig with wrong credentials
+apiVersion: aws.m.upbound.io/v1beta1
+kind: ProviderConfig
+metadata:
+  name: broken-aws-provider
+  namespace: default
+spec:
+  credentials:
+    source: Secret
+    secretRef:
+      namespace: default
+      name: broken-aws-creds
+      key: credentials
+---
+# Secret with fake credentials
+apiVersion: v1
+kind: Secret
+metadata:
+  name: broken-aws-creds
+  namespace: default
+stringData:
+  credentials: |
+    [default]
+    aws_access_key_id = FAKEKEYID123456
+    aws_secret_access_key = FAKESECRETKEY123456
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: xbuckets-broken-creds
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.com/v1alpha1
+    kind: XBucket
+  mode: Pipeline
+  pipeline:
+    - step: patch-and-transform
+      functionRef:
+        name: function-patch-and-transform
+      input:
+        apiVersion: pt.fn.crossplane.io/v1beta1
+        kind: Resources
+        resources:
+          - name: s3-bucket
+            base:
+              apiVersion: s3.aws.m.upbound.io/v1beta1
+              kind: Bucket
+              spec:
+                forProvider:
+                  region: ap-south-1
+                providerConfigRef:
+                  name: broken-aws-provider
+---
+apiVersion: platform.example.com/v1alpha1
+kind: XBucket
+metadata:
+  name: bucket-broken-creds
+  namespace: default
+spec:
+  crossplane:
+    compositionRef:
+      name: xbuckets-broken-creds
+  parameters:
+    region: ap-south-1

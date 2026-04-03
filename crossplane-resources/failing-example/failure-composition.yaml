@@ -1,0 +1,61 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: failure
+  labels:
+    provider: aws
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.com/v1alpha1
+    kind: XNetwork
+  mode: Pipeline
+  pipeline:
+    - step: patch-and-transform
+      functionRef:
+        name: function-patch
+      input:
+        apiVersion: pt.fn.crossplane.io/v1beta1
+        kind: Resources
+        resources:
+          - name: vpc
+            base:
+              apiVersion: ec2.aws.m.upbound.io/v1beta1
+              kind: VPC
+              spec:
+                forProvider:
+                  region: ap-south-1
+                  cidrBlock: "10.0.0.0/16"
+                  enableDnsSupport: true
+                  enableDnsHostnames: true
+                providerConfigRef:
+                  name: aws-provider
+                  kind: ProviderConfig
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.region
+                toFieldPath: spec.forProvider.region
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.cidrBlock
+                toFieldPath: spec.forProvider.cidrBlock
+
+          - name: subnet
+            base:
+              apiVersion: ec2.aws.m.upbound.io/v1beta1
+              kind: Subnet
+              spec:
+                forProvider:
+                  region: ap-south-1
+                  cidrBlock: "10.0.1.0/24"
+                  availabilityZone: ap-south-1a
+                  vpcIdSelector:          # ← add this
+                    matchControllerRef: true 
+                providerConfigRef:
+                  name: aws-provider
+                  kind: ProviderConfig
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.region
+                toFieldPath: spec.forProvider.region
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.subnetCidr
+                toFieldPath: spec.forProvider.cidrBlock

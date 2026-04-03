@@ -1,0 +1,13 @@
+apiVersion: platform.example.com/v1alpha1
+kind: XNetwork
+metadata:
+  name: network-wrong-region
+  namespace: default
+spec:
+  crossplane:
+    compositionRef:
+      name: xnetworks-aws
+  parameters:
+    region: eu-east-1      # ← invalid AWS region
+    cidrBlock: "10.0.0.0/16"
+    subnetCidr: "10.0.1.0/24"

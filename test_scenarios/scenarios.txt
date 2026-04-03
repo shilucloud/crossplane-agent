@@ -1,0 +1,64 @@
+Cluster Overview
+1. Basic cluster info
+"What version of Crossplane is running and what providers are installed?"
+Expected: calls get_crossplane_info, returns version, provider health, XRD count
+
+2. Full infrastructure listing
+"Show me all my XRs, XRDs, compositions and providers as a table"
+Expected: calls list_xrs, list_xrds, list_compositions, list_providers, formats as tables
+
+XR Diagnosis
+3. Broken XR — no composition selected
+"Why is bucketwithnocomposition not ready?"
+Expected: calls debug_xr, diagnosis = "No compatible Composition found", suggests checking compositeTypeRef
+
+4. Broken XR — cluster-scoped MR in namespaced XR
+"Debug my XR that has a cluster scoped resource error"
+Expected: diagnosis = "Composition using cluster-scoped MRs in namespaced XR", suggests switching to aws.m.upbound.io
+
+5. Broken XR — missing vpcId
+"Why is my subnet not creating?"
+Expected: diagnosis = "MissingParameter: vpcId", suggests adding cross-resource reference patch
+
+6. Broken XR — credentials invalid
+"My bucket XR says CannotConnectToProvider, what's wrong?"
+Expected: diagnosis = "credentials invalid or secret missing", suggests checking ProviderConfig secret
+
+7. Healthy XR
+"Is my-network healthy?"
+Expected: calls debug_xr, diagnosis = "No issues found", shows full tree
+
+Provider Diagnosis
+8. Provider health check
+"Are all my providers healthy? Show me details including pod status"
+Expected: calls get_provider_health, shows pod name, restart count, conditions
+
+9. Unhealthy provider
+"Debug the provider named failure"
+Expected: calls debug_provider, shows exact condition message, suggests fix
+
+10. ProviderConfig credentials check
+"Check if my aws-provider ProviderConfig credentials are valid"
+Expected: calls check_provider_config, shows secretExists, users count
+
+Composition & XRD
+11. Explain composition
+"What does the xnetworks-aws composition create? What resources and field mappings does it have?"
+Expected: calls explain_composition, shows VPC + Subnet, field patches, default values
+
+12. Describe XRD schema
+"What fields can I set when creating an XNetwork? Which are required?"
+Expected: calls describe_xrd, shows required fields (region), optional fields (cidrBlock, subnetCidr) with defaults
+
+13. Validate wrong region
+"I created an XNetwork with region eu-east-1, is that correct?"
+Expected: calls validate_xr, diagnosis = "INVALID REGION: eu-east-1 is not a valid AWS region"
+
+Visualization & Remediation
+14. Dependency graph
+"Show me the full dependency graph for my-network"
+Expected: calls build_dependency_graph, shows tree with ✅/❌ at each node
+
+15. Fix and reconcile
+"I just fixed the credentials secret, can you trigger a reconcile on my-network-1?"
+Expected: asks for approval (HITL), then calls annotate_reconcile, then calls get_conditions to verify

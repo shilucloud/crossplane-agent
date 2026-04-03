@@ -1,0 +1,70 @@
+# Composition using OLD cluster-scoped provider
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: xbuckets-cluster-scoped
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.com/v1alpha1
+    kind: XBucket
+  mode: Pipeline
+  pipeline:
+    - step: patch-and-transform
+      functionRef:
+        name: function-patch-and-transform
+      input:
+        apiVersion: pt.fn.crossplane.io/v1beta1
+        kind: Resources
+        resources:
+          - name: s3-bucket
+            base:
+              apiVersion: s3.aws.upbound.io/v1beta1   # ← cluster-scoped
+              kind: Bucket
+              spec:
+                forProvider:
+                  region: ap-south-1
+                providerConfigRef:
+                  name: aws-provider
+---
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: xbuckets.platform.example.com
+spec:
+  scope: Namespaced
+  group: platform.example.com
+  names:
+    kind: XBucket
+    plural: xbuckets
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              required:
+                - parameters
+              properties:
+                parameters:
+                  type: object
+                  required:
+                    - region
+                  properties:
+                    region:
+                      type: string
+---
+apiVersion: platform.example.com/v1alpha1
+kind: XBucket
+metadata:
+  name: bucket-cluster-scoped-error
+  namespace: default
+spec:
+  crossplane:
+    compositionRef:
+      name: xbuckets-cluster-scoped
+  parameters:
+    region: ap-south-1

@@ -1,16 +1,17 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: crossplane-app
+  name: crossplane-initial-setup
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "-1"
+    argocd.argoproj.io/sync-wave: "0"
 spec:
   project: default
   source:
-    repoURL: https://charts.crossplane.io/stable
-    chart: crossplane
-    targetRevision: 2.2.0
+    repoURL: https://github.com/shilucloud/crossplane-agent
+    path: crossplane-resources/initial
+    targetRevision: main
+
   destination:
     server: https://kubernetes.default.svc
     namespace: crossplane-system

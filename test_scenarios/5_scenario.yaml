@@ -1,0 +1,54 @@
+# Composition missing cross-resource reference
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: xnetworks-missing-vpcid
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.com/v1alpha1
+    kind: XNetwork
+  mode: Pipeline
+  pipeline:
+    - step: patch-and-transform
+      functionRef:
+        name: function-patch-and-transform
+      input:
+        apiVersion: pt.fn.crossplane.io/v1beta1
+        kind: Resources
+        resources:
+          - name: vpc
+            base:
+              apiVersion: ec2.aws.m.upbound.io/v1beta1
+              kind: VPC
+              spec:
+                forProvider:
+                  region: ap-south-1
+                  cidrBlock: "10.0.0.0/16"
+                providerConfigRef:
+                  name: aws-provider
+          - name: subnet
+            base:
+              apiVersion: ec2.aws.m.upbound.io/v1beta1
+              kind: Subnet
+              spec:
+                forProvider:
+                  region: ap-south-1
+                  cidrBlock: "10.0.1.0/24"
+                  availabilityZone: ap-south-1a
+                  # ← missing vpcIdSelector
+                providerConfigRef:
+                  name: aws-provider
+---
+apiVersion: platform.example.com/v1alpha1
+kind: XNetwork
+metadata:
+  name: network-missing-vpcid
+  namespace: default
+spec:
+  crossplane:
+    compositionRef:
+      name: xnetworks-missing-vpcid
+  parameters:
+    region: ap-south-1
+    cidrBlock: "10.0.0.0/16"
+    subnetCidr: "10.0.1.0/24"

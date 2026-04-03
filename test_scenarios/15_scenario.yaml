@@ -1,0 +1,16 @@
+# Create a paused XR to reconcile
+apiVersion: platform.example.com/v1alpha1
+kind: XNetwork
+metadata:
+  name: network-to-reconcile
+  namespace: default
+  annotations:
+    crossplane.io/paused: "true"
+spec:
+  crossplane:
+    compositionRef:
+      name: xnetworks-aws
+  parameters:
+    region: ap-south-1
+    cidrBlock: "10.0.0.0/16"
+    subnetCidr: "10.0.1.0/24"
